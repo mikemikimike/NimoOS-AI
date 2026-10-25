@@ -40,6 +40,10 @@ func (h *ModelsHandler) Pull(c echo.Context) error {
 	if err := c.Bind(&req); err != nil || req.Name == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "name is required")
 	}
+	checker := h.svc.OllamaChecker()
+	if checker == nil || !checker.IsHealthy() {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, "Ollama is not running")
+	}
 	go func() {
 		progress := make(chan service.PullProgress, 20)
 		go func() { for range progress {} }() // drain progress
